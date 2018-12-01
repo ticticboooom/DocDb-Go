@@ -62,16 +62,16 @@ func parseObject(lines []string) map[string]*Item {
 func parseArray(lines []string) []*Item {
 	wsdonList := make([]*Item, len(lines))
 	counter := 0
-	i := 0
+	i := 1
 	linesLength := len(lines)
-	for i >= linesLength {
-		end := findEnd(lines, i)
-		wsdonList[counter] = parseWsdonObject(lines[i:end])
+	for i < linesLength {
+		end := findEnd(lines, i+1)
+		wsdonList[counter] = parseWsdonObject(lines[i+1 : end])
 		counter++
-		i += end
+		i = end
 	}
 	array := make([]*Item, counter)
-	for i := 0; i < len(wsdonList); i++ {
+	for i := 0; i < counter; i++ {
 		array[i] = wsdonList[i]
 	}
 	return array
