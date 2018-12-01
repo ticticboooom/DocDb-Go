@@ -26,22 +26,34 @@ func ParseWsdon(document string) *Item {
 
 func parseWsdonObject(lines []string) *Item {
 	var wsdonItem = Item{}
-	if cleanString(lines[0]) == arrayString {
-		wsdonItem.array = parseArray(lines[0:findEnd(lines, 0)])
-	} else if titleRegex.MatchString(lines[0]) {
-		wsdonItem.object = parseObject(lines[0:findEnd(lines, 0)])
+	i := 0
+	end := findEnd(lines, i)
+	if cleanString(lines[i]) == arrayString {
+		wsdonItem.array = parseArray(lines[i:end])
+		i = end
+	} else if titleRegex.MatchString(lines[i]) {
+		wsdonItem.object = parseObject(lines[i:end])
+		i = end
 	} else {
-		wsdonItem.simple = cleanString(lines[1])
+		wsdonItem.simple = cleanString(lines[i])
+		i++
 	}
 	return &wsdonItem
 }
 
 func parseObject(lines []string) map[string]*Item {
 	itemsObject := map[string]*Item{}
-	for i := 0; i < len(lines); i++ {
+	linesLen := len(lines)
+	for i := 0; i < linesLen; {
 		item := lines[i]
-		if titleRegex.MatchString(item) {
-			itemsObject[getTitle(lines[i])] = parseWsdonObject(lines[i:findEnd(lines, i)])
+		end := findEnd(lines, i+1)
+		if end != -1 {
+			if titleRegex.MatchString(item) && i+1 < end {
+				itemsObject[getTitle(lines[i])] = parseWsdonObject(lines[i+1 : end])
+				i = end - 1
+			} else {
+				i++
+			}
 		}
 	}
 	return itemsObject
@@ -66,9 +78,15 @@ func parseArray(lines []string) []*Item {
 }
 
 func findEnd(lines []string, startIndex int) int {
+	if startIndex >= len(lines) {
+		return startIndex
+	}
 	startIndentation := getIndentCount(lines[startIndex])
+	if startIndex+1 == len(lines) {
+		return startIndex + 1
+	}
 	for i := startIndex + 1; i < len(lines); i++ {
-		if getIndentCount(lines[i]) <= startIndentation {
+		if getIndentCount(lines[i]) < startIndentation {
 			return i
 		}
 	}
@@ -80,12 +98,16 @@ func getIndentCount(line string) int {
 }
 func cleanString(in string) string {
 	start := 0
-	for i := 0; i < len(in); i++ {
-		if in[i] != '\t' && in[i] != '\n' {
-			start = i
+	if strings.Index(in, "\t") != -1 {
+		for i := 0; i < len(in); i++ {
+			if in[i] == '\t' || in[i] == '\n' {
+				start = i + 1
+			} else {
+				break
+			}
 		}
 	}
-	return in[start : len(in)-1]
+	return in[start:]
 }
 func getTitle(line string) string {
 	line = cleanString(line)
