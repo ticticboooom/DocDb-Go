@@ -1,10 +1,18 @@
 package wsdon
 
+type wsdonItemType int
 type Item struct {
-	array  []*Item
-	object map[string]*Item
-	simple string
+	array    []*Item
+	object   map[string]*Item
+	simple   string
+	itemType wsdonItemType
 }
+
+const (
+	array  wsdonItemType = 0
+	simple wsdonItemType = 1
+	object wsdonItemType = 2
+)
 
 func GetObject(item *Item, name string) *Item {
 	if val, ok := item.object[name]; ok {

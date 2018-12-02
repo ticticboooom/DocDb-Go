@@ -30,12 +30,15 @@ func parseWsdonObject(lines []string) *Item {
 	end := findEnd(lines, i)
 	if cleanString(lines[i]) == arrayString {
 		wsdonItem.array = parseArray(lines[i:end])
+		wsdonItem.itemType = array
 		i = end
 	} else if titleRegex.MatchString(lines[i]) {
 		wsdonItem.object = parseObject(lines[i:end])
+		wsdonItem.itemType = object
 		i = end
 	} else {
 		wsdonItem.simple = cleanString(lines[i])
+		wsdonItem.itemType = simple
 		i++
 	}
 	return &wsdonItem
